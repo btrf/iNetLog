@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    paths:
+      - "*.py"
+      - "requirements.txt"
+      - "icons/**"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Check syntax
+        run: >
+          python -m compileall -q main.py charts.py database.py i18n.py
+          inettester.py flags.py ui_icons.py
+
+      - name: Build portable exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed --name iNetLog
+          --icon "icons\inetlog.ico" --add-data "icons\inetlog.ico;icons"
+          --exclude-module PIL main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iNetLog-windows
+          path: dist/iNetLog.exe
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ github.ref_name }}" dist/iNetLog.exe
+          --title "iNetLog ${{ github.ref_name }}"
+          --notes "Portable Windows build of iNetLog ${{ github.ref_name }}."

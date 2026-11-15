@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local data and settings
+*.db
+*.ini
+*.csv
+*.xlsx
+*.log
+
+# Build output
+dist/
+build/
+*.spec
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local agent instructions (not published)
+AGENTS.md
