@@ -56,7 +56,8 @@ from inettester import INetTestThread
 from ui_icons import theme_icon
 
 APP_NAME = "iNetLog"
-APP_VERSION = "2.3"
+APP_VERSION = "2.4"
+GITHUB_URL = "https://github.com/btrf/iNetLog"
 
 _RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 _STARTUP_VALUE = APP_NAME
@@ -1146,17 +1147,27 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("status.cleared"), 5000)
 
     def show_about(self) -> None:
-        QMessageBox.about(
-            self,
-            tr("about.title"),
+        box = QMessageBox(self)
+        box.setWindowTitle(tr("about.title"))
+        box.setIconPixmap(self.windowIcon().pixmap(64, 64))
+        box.setTextFormat(Qt.TextFormat.RichText)
+        box.setText(
             tr(
                 "about.body",
                 name=APP_NAME,
                 version=APP_VERSION,
                 tagline=tr("about.tagline"),
                 path=self.db.path,
-            ),
+                github=GITHUB_URL,
+            )
         )
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        box.setDefaultButton(QMessageBox.StandardButton.Ok)
+        label = box.findChild(QLabel, "qt_msgbox_label")
+        if label is not None:
+            label.setOpenExternalLinks(True)
+            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        box.exec()
 
     # ------------------------------------------------------------------ закрытие
     def closeEvent(self, event) -> None:  # noqa: N802 - метод Qt

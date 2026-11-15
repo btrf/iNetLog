@@ -191,12 +191,14 @@ _STRINGS: dict[str, dict[str, str]] = {
     "about.body": {
         "en": (
             "<b>{name} {version}</b><br>{tagline}<br><br>"
-            "Database: <code>{path}</code><br><br>"
+            "Database: <code>{path}</code><br>"
+            "Project on GitHub: <a href=\"{github}\">{github}</a><br><br>"
             "Test backend: speedtest-cli (speedtest.net)."
         ),
         "ru": (
             "<b>{name} {version}</b><br>{tagline}<br><br>"
-            "База данных: <code>{path}</code><br><br>"
+            "База данных: <code>{path}</code><br>"
+            "Проект на GitHub: <a href=\"{github}\">{github}</a><br><br>"
             "Бэкенд замера: speedtest-cli (speedtest.net)."
         ),
     },
