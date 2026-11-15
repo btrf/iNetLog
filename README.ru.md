@@ -6,6 +6,8 @@
 
 *English version: [README.md](README.md).*
 
+![Демонстрация iNetLog](docs/demo.gif)
+
 ## Возможности
 
 * **Автоматические замеры** Download, Upload и Ping с выбранным интервалом — от 1 минуты

@@ -6,6 +6,8 @@ interactive charts. No installation — just one portable executable.
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
+![iNetLog demo](docs/demo.gif)
+
 ## Features
 
 * **Scheduled measurements** of Download, Upload and Ping — every 1 to 60 minutes.
