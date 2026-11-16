@@ -866,8 +866,7 @@ py -3.12 -m venv .venv
       const supported = ["en", "ru"];
       const stored = localStorage.getItem("inetlog-lang");
       const fromUrl = new URLSearchParams(location.search).get("lang");
-      const browserRu = (navigator.language || "").toLowerCase().startsWith("ru");
-      let current = supported.includes(fromUrl) ? fromUrl : (supported.includes(stored) ? stored : (browserRu ? "ru" : "en"));
+      let current = supported.includes(fromUrl) ? fromUrl : (supported.includes(stored) ? stored : "en");
 
       const metaDescription = document.querySelector('meta[name="description"]');
 
