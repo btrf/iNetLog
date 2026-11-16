@@ -431,6 +431,11 @@
       border-bottom: 1px solid var(--border-soft);
     }
 
+    .split > :only-child {
+      grid-column: 1 / -1;
+      max-width: 780px;
+    }
+
     .check-list {
       display: grid;
       gap: 12px;
@@ -452,51 +457,6 @@
       color: var(--accent);
       font-weight: 800;
     }
-
-    .code-card {
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: #0a111d;
-      box-shadow: 0 24px 60px -34px rgba(0, 0, 0, .9);
-    }
-
-    .code-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255, 255, 255, .03);
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .code-head span { font-family: "Cascadia Code", Consolas, monospace; }
-
-    .copy-btn {
-      padding: 4px 9px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .copy-btn:hover { color: var(--text); border-color: rgba(56, 189, 248, .5); }
-
-    pre {
-      margin: 0;
-      padding: 18px;
-      overflow-x: auto;
-      color: #cbd5e1;
-      font: 12.5px/1.75 "Cascadia Code", Consolas, "SFMono-Regular", monospace;
-    }
-
-    pre .comment { color: #64748b; }
 
     /* ---------------------------------------------------------- download */
     .download {
@@ -705,19 +665,6 @@
             <li data-i18n="split.b4">Move the folder anywhere: data travels with the app.</li>
           </ul>
         </div>
-        <div>
-          <div class="code-card">
-            <div class="code-head">
-              <span data-i18n="source.title">Run from source</span>
-              <button class="copy-btn" type="button" data-copy data-i18n="source.copy">Copy</button>
-            </div>
-            <pre id="install-code"><code><span class="comment"># Python 3.10–3.13 is required</span>
-py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python main.py</code></pre>
-          </div>
-          <p class="hero-meta" style="margin:12px 0 0" data-i18n="source.note">The portable .exe is built with PyInstaller. Measurement backend: speedtest-cli.</p>
-        </div>
       </section>
 
       <section id="download" class="download" aria-labelledby="download-title">
@@ -792,9 +739,6 @@ py -3.12 -m venv .venv
           "split.b2": "Failed measurements are recorded with the error text.",
           "split.b3": "Autostart launches the app minimized and keeps logging in the background.",
           "split.b4": "Move the folder anywhere: data travels with the app.",
-          "source.title": "Run from source",
-          "source.copy": "Copy",
-          "source.note": "The portable .exe is built with PyInstaller. Measurement backend: speedtest-cli.",
           "download.eyebrow": "Download",
           "download.title": "Ready to see the real numbers?",
           "download.text": "Download the portable Windows build and start measuring in seconds. The first test runs automatically after launch.",
@@ -848,9 +792,6 @@ py -3.12 -m venv .venv
           "split.b2": "Неудачные измерения сохраняются вместе с текстом ошибки.",
           "split.b3": "Автозапуск открывает приложение свёрнутым и продолжает журнал в фоне.",
           "split.b4": "Папку можно перенести куда угодно — данные переедут вместе с ней.",
-          "source.title": "Запуск из исходников",
-          "source.copy": "Копировать",
-          "source.note": "Портативный .exe собирается через PyInstaller. Бэкенд замеров: speedtest-cli.",
           "download.eyebrow": "Скачать",
           "download.title": "Готовы увидеть реальные цифры?",
           "download.text": "Скачайте портативную сборку для Windows и начните измерения за пару секунд. Первый замер запустится автоматически после старта.",
@@ -890,30 +831,6 @@ py -3.12 -m venv .venv
       document.querySelectorAll("[data-lang-btn]").forEach((button) => {
         button.addEventListener("click", () => applyLanguage(button.dataset.langBtn));
       });
-
-      const copyButton = document.querySelector("[data-copy]");
-      if (copyButton) {
-        copyButton.addEventListener("click", async () => {
-          const code = document.getElementById("install-code");
-          if (!code) return;
-          const text = code.innerText;
-          try {
-            await navigator.clipboard.writeText(text);
-            copyButton.textContent = current === "ru" ? "Готово" : "Copied";
-          } catch (error) {
-            const area = document.createElement("textarea");
-            area.value = text;
-            document.body.appendChild(area);
-            area.select();
-            try { document.execCommand("copy"); } catch (ignored) {}
-            area.remove();
-            copyButton.textContent = current === "ru" ? "Готово" : "Copied";
-          }
-          window.setTimeout(() => {
-            copyButton.textContent = copy[current]["source.copy"];
-          }, 1600);
-        });
-      }
 
       applyLanguage(current);
     })();
