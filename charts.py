@@ -124,6 +124,7 @@ CHART_THEMES: dict[str, dict[str, object]] = {
         "chart_theme": QChart.ChartTheme.ChartThemeDark,
         "download": QColor("#38bdf8"),
         "upload": QColor("#f59e0b"),
+        "tariff": QColor("#ef4444"),
         "grid": QColor("#243247"),
         "label": QColor("#94a3b8"),
         "title": QColor("#e2e8f0"),
@@ -132,6 +133,7 @@ CHART_THEMES: dict[str, dict[str, object]] = {
         "chart_theme": QChart.ChartTheme.ChartThemeLight,
         "download": QColor("#0284c7"),
         "upload": QColor("#ea580c"),
+        "tariff": QColor("#dc2626"),
         "grid": QColor("#dbe3ef"),
         "label": QColor("#5b6b82"),
         "title": QColor("#0b1220"),
@@ -172,6 +174,9 @@ class INetChart(QWidget):
         self._normalizing = False
         self._show_download = True
         self._show_upload = True
+        self._show_tariff = True
+        self._tariff_mbps = 5.0
+        self._data_max = 0.0
         self._zoomed = False
         self._auto_y = True
         self._has_data = False
@@ -247,6 +252,11 @@ class INetChart(QWidget):
         self._chart.setAnimationOptions(QChart.AnimationOption.NoAnimation)
         self._chart.legend().hide()
 
+        self._tariff = QLineSeries()
+        self._tariff.setName("Tariff")
+        self._tariff.setPen(QPen(QColor("#ef4444"), 2, Qt.PenStyle.DashLine))
+        self._chart.addSeries(self._tariff)
+
         self._download = QLineSeries()
         self._download.setName("Download")
         self._upload = QLineSeries()
@@ -267,7 +277,7 @@ class INetChart(QWidget):
 
         self._chart.addAxis(self._axis_x, Qt.AlignmentFlag.AlignBottom)
         self._chart.addAxis(self._axis_y, Qt.AlignmentFlag.AlignLeft)
-        for series in (self._download, self._upload):
+        for series in (self._tariff, self._download, self._upload):
             series.attachAxis(self._axis_x)
             series.attachAxis(self._axis_y)
 
@@ -275,7 +285,9 @@ class INetChart(QWidget):
         self._view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._view.setFrameShape(QFrame.Shape.NoFrame)
         self._view.setMinimumHeight(260)
-        self._view.setStyleSheet("background: transparent;")
+        self._view.setBackgroundBrush(QBrush(Qt.GlobalColor.transparent))
+        self._view.setAutoFillBackground(False)
+        self._view.viewport().setAutoFillBackground(False)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -309,11 +321,40 @@ class INetChart(QWidget):
 
         self._download.setPen(QPen(colors["download"], 2))  # type: ignore[arg-type]
         self._upload.setPen(QPen(colors["upload"], 2))  # type: ignore[arg-type]
+        self._tariff.setPen(
+            QPen(colors["tariff"], 2, Qt.PenStyle.DashLine)  # type: ignore[arg-type]
+        )
 
         for axis, color in ((self._axis_x, "label"), (self._axis_y, "label")):
             axis.setLabelsColor(colors[color])  # type: ignore[arg-type]
             axis.setGridLineColor(colors["grid"])  # type: ignore[arg-type]
             axis.setLineVisible(False)
+
+    # ------------------------------------------------------------------ тариф
+    def set_tariff(self, mbps: float, visible: bool) -> None:
+        """Задаёт скорость тарифа и видимость красной опорной линии."""
+        self._tariff_mbps = max(0.0, float(mbps))
+        self._show_tariff = visible
+        self._tariff.setVisible(visible)
+
+        if self._has_data and self._full_x is not None:
+            tariff = self._tariff_mbps if self._show_tariff else 0.0
+            top = _nice_upper_bound(max(self._data_max, tariff))
+            self._full_y = (0.0, top)
+            if not self._zoomed:
+                self._apply_axis_ranges(self._full_x[0], self._full_x[1], 0.0, top)
+            else:
+                self._refresh_tariff_line()
+        else:
+            self._refresh_tariff_line()
+
+    def _refresh_tariff_line(self) -> None:
+        """Растягивает горизонтальную линию тарифа на всю видимую область."""
+        x0, x1 = self._x_range()
+        self._tariff.clear()
+        if self._show_tariff:
+            self._tariff.append(x0, self._tariff_mbps)
+            self._tariff.append(x1, self._tariff_mbps)
 
     # ------------------------------------------------------------------ диапазон
     def selected_interval(self) -> tuple[Optional[datetime], Optional[datetime]]:
@@ -494,6 +535,8 @@ class INetChart(QWidget):
                 point = series.at(index)
                 if x0 <= point.x() <= x1:
                     values.append(point.y())
+        if self._show_tariff:
+            values.append(self._tariff_mbps)
         if not values:
             return None
         return 0.0, _nice_upper_bound(max(values))
@@ -550,6 +593,8 @@ class INetChart(QWidget):
         else:
             self._axis_y.setLabelFormat("%.0f")
 
+        self._refresh_tariff_line()
+
     # ------------------------------------------------------------------ данные
     def set_series_visible(self, download: bool, upload: bool) -> None:
         """Показывает только выбранные линии (Download/Upload)."""
@@ -589,6 +634,7 @@ class INetChart(QWidget):
         if not x_values:
             self._apply_series_visibility()
             self._has_data = False
+            self._data_max = 0.0
             self._chart.setTitle(tr("chart.no_data"))
             self._full_x = None
             self._full_y = (0.0, 100.0)
@@ -600,10 +646,12 @@ class INetChart(QWidget):
             self._axis_x.setTickCount(6)
             self._axis_y.setRange(0, 100)
             self._axis_y.setLabelFormat("%.0f")
+            self._refresh_tariff_line()
             return
 
         self._apply_series_visibility()
         self._has_data = True
+        self._data_max = max_y
         self._chart.setTitle("")
 
         # Точки рисуем только на небольших выборках — иначе график тормозит.
@@ -617,7 +665,9 @@ class INetChart(QWidget):
         if x_max - x_min < 60_000:
             x_min = x_max - 60_000
 
-        top = _nice_upper_bound(max_y)
+        top = _nice_upper_bound(
+            max(max_y, self._tariff_mbps if self._show_tariff else 0.0)
+        )
         self._full_x = (float(x_min), float(x_max))
         self._full_y = (0.0, top)
 

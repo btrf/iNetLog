@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QComboBox,
+    QDoubleSpinBox,
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -56,7 +57,7 @@ from inettester import INetTestThread
 from ui_icons import theme_icon
 
 APP_NAME = "iNetLog"
-APP_VERSION = "2.4"
+APP_VERSION = "2.6"
 GITHUB_URL = "https://github.com/btrf/iNetLog"
 
 _RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -121,8 +122,18 @@ _THEME_COLORS: dict[str, dict[str, str]] = {
 }
 
 _CARD_COLORS: dict[str, dict[str, str]] = {
-    "dark": {"download": "#38bdf8", "upload": "#f59e0b", "ping": "#a78bfa"},
-    "light": {"download": "#0284c7", "upload": "#d97706", "ping": "#7c3aed"},
+    "dark": {
+        "download": "#38bdf8",
+        "upload": "#f59e0b",
+        "ping": "#a78bfa",
+        "tariff": "#ef4444",
+    },
+    "light": {
+        "download": "#0284c7",
+        "upload": "#d97706",
+        "ping": "#7c3aed",
+        "tariff": "#dc2626",
+    },
 }
 
 _STYLE_TEMPLATE = Template(
@@ -152,8 +163,8 @@ QPushButton#langButton { padding: 3px 7px; font-size: 12px; font-weight: 700; }
 QPushButton#langButton:hover { border-color: $accent; }
 QPushButton#themeButton { padding: 3px 6px; }
 QPushButton#themeButton:hover { border-color: $accent; }
-QComboBox, QDateEdit { background: $btn; border: 1px solid $btn_border; border-radius: 6px; padding: 5px 10px; min-width: 90px; color: $text; }
-QComboBox:hover, QDateEdit:hover { border-color: $accent; }
+QComboBox, QDateEdit, QDoubleSpinBox { background: $btn; border: 1px solid $btn_border; border-radius: 6px; padding: 5px 10px; min-width: 90px; color: $text; }
+QComboBox:hover, QDateEdit:hover, QDoubleSpinBox:hover { border-color: $accent; }
 QComboBox QAbstractItemView { background: $panel; border: 1px solid $border; selection-background-color: $accent; selection-color: $accent_text; outline: none; }
 QComboBox::drop-down, QDateEdit::drop-down { border: none; width: 18px; }
 QCalendarWidget QWidget { background: $panel; color: $text; }
@@ -434,6 +445,22 @@ class MainWindow(QMainWindow):
         self.upload_toggle.setToolTip(tr("series.upload_tooltip"))
         self.upload_toggle.toggled.connect(self._on_series_toggled)
 
+        self.tariff_toggle = QPushButton(tr("series.tariff"))
+        self.tariff_toggle.setCheckable(True)
+        self.tariff_toggle.setChecked(True)
+        self.tariff_toggle.setToolTip(tr("series.tariff_tooltip"))
+        self.tariff_toggle.toggled.connect(self._on_tariff_changed)
+
+        self.tariff_spin = QDoubleSpinBox()
+        self.tariff_spin.setDecimals(1)
+        self.tariff_spin.setRange(0.1, 10_000.0)
+        self.tariff_spin.setSingleStep(1.0)
+        self.tariff_spin.setValue(5.0)
+        self.tariff_spin.setSuffix(f" {tr('unit.mbps')}")
+        self.tariff_spin.setToolTip(tr("series.tariff_value_tooltip"))
+        self.tariff_spin.setKeyboardTracking(False)
+        self.tariff_spin.valueChanged.connect(self._on_tariff_changed)
+
         self.series_controls = QWidget()
         series_row = QHBoxLayout(self.series_controls)
         series_row.setContentsMargins(0, 0, 0, 0)
@@ -441,6 +468,9 @@ class MainWindow(QMainWindow):
         series_row.addStretch(1)
         series_row.addWidget(self.download_toggle)
         series_row.addWidget(self.upload_toggle)
+        series_row.addSpacing(12)
+        series_row.addWidget(self.tariff_toggle)
+        series_row.addWidget(self.tariff_spin)
         series_row.addStretch(1)
         root.addWidget(self.series_controls)
 
@@ -640,6 +670,10 @@ class MainWindow(QMainWindow):
         self.ping_card.set_unit(tr("unit.ms"))
         self.download_toggle.setToolTip(tr("series.download_tooltip"))
         self.upload_toggle.setToolTip(tr("series.upload_tooltip"))
+        self.tariff_toggle.setText(tr("series.tariff"))
+        self.tariff_toggle.setToolTip(tr("series.tariff_tooltip"))
+        self.tariff_spin.setSuffix(f" {tr('unit.mbps')}")
+        self.tariff_spin.setToolTip(tr("series.tariff_value_tooltip"))
 
         self._table_title.setText(tr("table.title"))
         self.table.setHorizontalHeaderLabels(self._table_headers())
@@ -781,6 +815,14 @@ class MainWindow(QMainWindow):
             self.upload_toggle.isChecked(),
         )
 
+    def _on_tariff_changed(self, _value: object) -> None:
+        """Включает/выключает линию тарифа и обновляет её скорость."""
+        visible = self.tariff_toggle.isChecked()
+        mbps = self.tariff_spin.value()
+        self.chart.set_tariff(mbps, visible)
+        self._settings.setValue("tariff_visible", visible)
+        self._settings.setValue("tariff_mbps", mbps)
+
     # ------------------------------------------------------------------ тема
     def _apply_theme(self, theme: str) -> None:
         self._theme = theme if theme in STYLES else "dark"
@@ -798,6 +840,7 @@ class MainWindow(QMainWindow):
         for button, accent in (
             (self.download_toggle, colors["download"]),
             (self.upload_toggle, colors["upload"]),
+            (self.tariff_toggle, colors["tariff"]),
         ):
             button.setStyleSheet(
                 f"QPushButton {{ background: {theme_colors['btn']}; color: {theme_colors['text']}; "
@@ -863,6 +906,17 @@ class MainWindow(QMainWindow):
             button.blockSignals(False)
         self.chart.set_series_visible(show_download, show_upload)
 
+        tariff_mbps = self._as_float(self._settings.value("tariff_mbps", 5.0), 5.0)
+        tariff_visible = self._settings.value("tariff_visible", True, type=bool)
+        self.tariff_spin.blockSignals(True)
+        self.tariff_spin.setValue(tariff_mbps)
+        self.tariff_spin.blockSignals(False)
+        tariff_mbps = self.tariff_spin.value()
+        self.tariff_toggle.blockSignals(True)
+        self.tariff_toggle.setChecked(tariff_visible)
+        self.tariff_toggle.blockSignals(False)
+        self.chart.set_tariff(tariff_mbps, tariff_visible)
+
     def _save_settings(self) -> None:
         self._settings.setValue("interval_minutes", self._interval_minutes())
         self._settings.setValue("range_index", self.chart.range_index())
@@ -871,6 +925,8 @@ class MainWindow(QMainWindow):
         self._settings.setValue("show_chart", self._show_chart_action.isChecked())
         self._settings.setValue("show_download", self.download_toggle.isChecked())
         self._settings.setValue("show_upload", self.upload_toggle.isChecked())
+        self._settings.setValue("tariff_visible", self.tariff_toggle.isChecked())
+        self._settings.setValue("tariff_mbps", self.tariff_spin.value())
         range_from, range_to = self.chart.custom_dates_iso()
         self._settings.setValue("range_from", range_from)
         self._settings.setValue("range_to", range_to)
@@ -880,6 +936,13 @@ class MainWindow(QMainWindow):
     def _as_int(value: object, default: int) -> int:
         try:
             return int(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _as_float(value: object, default: float) -> float:
+        try:
+            return float(value)  # type: ignore[arg-type]
         except (TypeError, ValueError):
             return default
 

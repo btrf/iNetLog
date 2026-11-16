@@ -6,7 +6,7 @@ interactive charts. No installation — just one portable executable.
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
-![iNetLog demo](docs/demo.gif)
+![iNetLog demo](docs/iNetLog.png)
 
 ## Features
 
@@ -16,6 +16,9 @@ interactive charts. No installation — just one portable executable.
   see when and why the connection dropped.
 * **Speed charts** for the last 24 hours, 7 days, 30 days, all time, or any custom date
   range. Show only the series you need — Download, Upload, or both.
+* **Provider tariff line** — a red reference line on the chart (5 Mbit/s by default)
+  shows how measurements compare to your plan. Toggle it next to the
+  Download/Upload buttons and adjust the speed to your tariff.
 * **Chart zoom**: mouse wheel zooms the time axis, drag a box to zoom into an area,
   drag to pan, double-click to reset. The speed axis adjusts automatically.
 * **Period summary**: current values, average and maximum, plus a table of recent
@@ -51,7 +54,7 @@ py -3.12 -m venv .venv
 | File | Contents |
 | --- | --- |
 | `inetlog.db` | measurement history |
-| `inetlog.ini` | settings: theme, language, interval, period, chart visibility |
+| `inetlog.ini` | settings: theme, language, interval, period, chart visibility, tariff line |
 
 Both files are created next to `iNetLog.exe`. If that folder is not writable, they are
 saved to `%APPDATA%\iNetLog` instead.

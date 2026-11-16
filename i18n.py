@@ -254,6 +254,15 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "Show the Upload line on the chart",
         "ru": "Показывать линию Upload на графике",
     },
+    "series.tariff": {"en": "Tariff", "ru": "Тариф"},
+    "series.tariff_tooltip": {
+        "en": "Show the provider tariff line on the chart",
+        "ru": "Показывать линию тарифа провайдера на графике",
+    },
+    "series.tariff_value_tooltip": {
+        "en": "Provider tariff speed",
+        "ru": "Скорость по тарифу провайдера",
+    },
     "lang.switch_to_en": {
         "en": "Switch to English",
         "ru": "Переключить на английский",
