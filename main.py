@@ -57,7 +57,7 @@ from inettester import INetTestThread
 from ui_icons import theme_icon
 
 APP_NAME = "iNetLog"
-APP_VERSION = "2.6"
+APP_VERSION = "2.7"
 GITHUB_URL = "https://github.com/btrf/iNetLog"
 
 _RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
