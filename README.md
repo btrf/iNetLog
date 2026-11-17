@@ -86,6 +86,12 @@ is updated.
 * The interface never freezes during a test: measurements run in the background.
 * Measurement times are based on the computer's local clock.
 
+## Support the project
+
+iNetLog is free, with no ads and no telemetry. If it saves you time, you can support development:
+
+[Donate via YooMoney](https://yoomoney.ru/to/41001937179526) — one-time, any amount.
+
 ## License
 
 [MIT](LICENSE)

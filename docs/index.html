@@ -490,6 +490,34 @@
       font-size: 12.5px;
     }
 
+    /* ----------------------------------------------------------- support */
+    .support {
+      padding: 0 0 72px;
+    }
+
+    .support-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px 28px;
+      padding: 22px 26px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(20, 27, 36, .86), rgba(13, 20, 30, .82));
+    }
+
+    .support-card h2 {
+      margin: 0 0 4px;
+      font-size: 19px;
+    }
+
+    .support-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+
     /* ------------------------------------------------------------ footer */
     footer {
       padding: 26px 0 42px;
@@ -679,6 +707,18 @@
           <p class="download-note" data-i18n="download.note">Windows 10/11 · about 50 MB · MIT license</p>
         </div>
       </section>
+
+      <section id="support" class="support" aria-labelledby="support-title">
+        <div class="support-card">
+          <div>
+            <h2 id="support-title" data-i18n="support.title">Like iNetLog? Support its development</h2>
+            <p data-i18n="support.text">A one-time donation via YooMoney. Any amount helps.</p>
+          </div>
+          <a class="btn" href="https://yoomoney.ru/to/41001937179526" target="_blank" rel="noopener">
+            <span data-i18n="support.button">Support via YooMoney</span>
+          </a>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -744,6 +784,9 @@
           "download.text": "Download the portable Windows build and start measuring in seconds. The first test runs automatically after launch.",
           "download.button": "Download iNetLog.exe",
           "download.note": "Windows 10/11 · about 50 MB · MIT license",
+          "support.title": "Like iNetLog? Support its development",
+          "support.text": "A one-time donation via YooMoney. Any amount helps.",
+          "support.button": "Support via YooMoney",
           "footer.license": "iNetLog is open source under the MIT license.",
           "footer.repo": "GitHub repository",
           "footer.releases": "Releases",
@@ -797,6 +840,9 @@
           "download.text": "Скачайте портативную сборку для Windows и начните измерения за пару секунд. Первый замер запустится автоматически после старта.",
           "download.button": "Скачать iNetLog.exe",
           "download.note": "Windows 10/11 · около 50 МБ · Лицензия MIT",
+          "support.title": "Нравится iNetLog? Поддержите разработку",
+          "support.text": "Разовый донат через ЮMoney. Любая сумма помогает.",
+          "support.button": "Поддержать через ЮMoney",
           "footer.license": "iNetLog — открытый проект под лицензией MIT.",
           "footer.repo": "Репозиторий на GitHub",
           "footer.releases": "Релизы",
