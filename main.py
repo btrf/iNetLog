@@ -329,7 +329,7 @@ class MainWindow(QMainWindow):
         self.db = INetDatabase(db_path)
         self._settings = QSettings(str(db_path.with_name("inetlog.ini")), QSettings.Format.IniFormat)
         set_language(self._settings.value("language", DEFAULT_LANGUAGE))
-        self.setWindowTitle(f"{APP_NAME} — {tr('app.title_suffix')}")
+        self.setWindowTitle(f"{APP_NAME} {APP_VERSION} — {tr('app.title_suffix')}")
         self._thread: Optional[INetTestThread] = None
         self._measuring = False
         self._paused = False
@@ -657,7 +657,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------ язык
     def retranslate(self) -> None:
         """Обновляет все подписи интерфейса на текущем языке."""
-        self.setWindowTitle(f"{APP_NAME} — {tr('app.title_suffix')}")
+        self.setWindowTitle(f"{APP_NAME} {APP_VERSION} — {tr('app.title_suffix')}")
         self._subtitle_label.setText(tr("app.subtitle"))
         self._interval_label.setText(tr("interval.label"))
         for index, minutes in enumerate(self.INTERVALS):
